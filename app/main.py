@@ -7,6 +7,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from uvicorn import run
 from pydantic import BaseModel
+from tempfile import NamedTemporaryFile
 
 class Item(BaseModel):
     link: str
@@ -321,9 +322,29 @@ async def root():
 
 
 @app.get("/{full_path:path}")
-def createItem(full_path: str):
-    # result = {"link": link+"dupa"}
+def predictASL(full_path: str):
     res = processVideo(full_path)
+
+    return res
+
+@app.post("/video/test-asl")
+def testASL(file: UploadFile = File(...)):
+    temp = NamedTemporaryFile(delete=False)
+    try:
+        try:
+            contents = file.file.read()
+            with temp as f:
+                f.write(contents)
+        except Exception:
+            return {"message": "There was an error uploading the file"}
+        finally:
+            file.file.close()
+
+        res = processVideo(temp.name)
+    except Exception:
+        return {"message": "There was an error processing the file"}
+    finally:
+        os.remove(temp.name)
 
     return res
 
