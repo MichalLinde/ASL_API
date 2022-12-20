@@ -441,7 +441,7 @@ model2 = keras.models.load_model("app/model_bidirectional_droput_final_2hand.h5"
 
 
 
-def processVideo(video):
+def processVideo(video, system_name):
     init_global_variables_on_zero()
     global frame_num, all_keypoints
     global number_of_blank_pose_left, number_of_blank_pose_right, number_of_blank_left_hand, number_of_blank_right_hand
@@ -456,6 +456,10 @@ def processVideo(video):
     last_one_counter = 0
     threshold = 0.6
 
+    if system_name == "ios":
+        print("iOS")
+    elif system_name == "android":
+        print("android")
 
     cap = cv2.VideoCapture(video)
     # Set mediapipe model
@@ -605,7 +609,7 @@ def testASL(file: UploadFile = File(...)):
         finally:
             file.file.close()
 
-        res = processVideo(temp.name)
+        res = processVideo(temp.name, "ios")
     except Exception:
         return {"message": "There was an error processing the file"}
     finally:
@@ -614,9 +618,9 @@ def testASL(file: UploadFile = File(...)):
     return res
 
 
-@app.get("/{full_path:path}")
-def predictASL(full_path: str):
-    res = processVideo(full_path)
+@app.get("/{full_path:path}/system/{system_name}")
+def predictASL(full_path: str, system_name: str):
+    res = processVideo(full_path, system_name)
 
     return res
 
